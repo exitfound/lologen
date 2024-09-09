@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  lologen:
+    container_name: lologen
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lologen:main
+    restart: on-failure
+    command: [ "-f", "json", "-l", "info", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
+
+    # Driver variant
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://172.17.0.1:3100/loki/api/v1/push"
+        loki-retries: "3"
+        loki-pipeline-stages: |
+          - regex:
+              expression: '(level|levelname|lvl|severity)=(?P<level>\w+)'
+          - labels:
+              level:
+    # Scrape variant:
+    # labels:
+    #   status: "running"
