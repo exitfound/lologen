@@ -11,21 +11,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Linting dockerfile from list
+      - name: Linting main dockerfile
         uses: hadolint/hadolint-action@v3.1.0
-        env:
-          DOCKERFILE_PROFILE: ${{ matrix.OS_VERSION }}
         with:
-          recursive: false
           dockerfile: Dockerfile
           ignore: "DL3007"
+
+      - name: Linting binary dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./binary/binary.dockerfile
+          ignore: "DL3007,DL3008"
 
   build-lologen-main-image:
     needs: hadolint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
         IMAGE_TAG: [main]
     steps:
@@ -55,5 +58,43 @@ jobs:
           context: .
           tags: ${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
           file: Dockerfile
+          cache-from: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          cache-to: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
+
+  build-lologen-binary-image:
+    needs: hadolint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        IMAGE_TAG: [binary]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker Image
+        uses: docker/build-push-action@v5
+        env:
+          DOCKER_HUB_USER: "mdd13"
+          DOCKER_HUB_REPOSITORY: "lologen"
+          IMAGE_TAG: ${{ matrix.IMAGE_TAG }}
+        with:
+          push: true
+          context: .
+          tags: ${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          file: ./{{ env.IMAGE_TAG }}/{{ env.IMAGE_TAG }}.dockerfile
           cache-from: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
           cache-to: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
