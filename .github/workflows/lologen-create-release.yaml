@@ -1,0 +1,38 @@
+name: Lologen Create Release
+
+on: 
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r --user --no-cache-dir requirements.txt
+
+      - name: Build our Application
+        run: |
+          pyinstaller --onefile --noconfirm --clean --name lologen lologen.py \
+          && cd ./dist/ \
+          && zip lologen_linux_amd64.zip lologen
+
+      - name: Generate Date for Body
+        run: echo "# $(date +'%Y/%m/%d')" > ${{ github.ref_name }}.txt
+
+      # https://github.com/softprops/action-gh-release
+      - name: Create Release on Github
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: exitfound/lologen
+          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          body_path: ${{ github.ref_name }}.txt
+          files: ./dist/lologen_linux_amd64.zip
