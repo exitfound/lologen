@@ -2,10 +2,7 @@ version: '3.7'
 services:
   lologen-binary:
     container_name: lologen-binary
-    build:
-      context: ../
-      dockerfile: ./binary/binary.dockerfile
-    image: lologen:binary
+    image: mdd13/lologen:binary
     restart: on-failure
     command: [ "-f", "logfmt", "-l", "info", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
 
@@ -20,6 +17,7 @@ services:
               expression: '(level|levelname|lvl|severity)=(?P<level>\w+)'
           - labels:
               level:
+
     # Scrape variant:
     # labels:
-    #   status: "running"
+    #   name: "running"

@@ -8,16 +8,16 @@ jobs:
   hadolint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Linting main dockerfile
+      - name: Linting Main Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
           ignore: "DL3007"
 
-      - name: Linting binary dockerfile
+      - name: Linting Binary Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: ./binary/binary.dockerfile
@@ -32,7 +32,7 @@ jobs:
       matrix:
         IMAGE_TAG: [main]
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up QEMU
@@ -47,7 +47,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker Image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         env:
           DOCKER_HUB_USER: "mdd13"
@@ -70,7 +70,7 @@ jobs:
       matrix:
         IMAGE_TAG: [binary]
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up QEMU
@@ -85,7 +85,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker Image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         env:
           DOCKER_HUB_USER: "mdd13"
