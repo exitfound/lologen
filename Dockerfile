@@ -41,6 +41,6 @@ COPY --from=BASE ${LIB_PATH}/libcap.so.2 \
     ${LIB_PATH}/libzstd.so.1 \
     ${LIB_PATH}/liblz4.so.1 \
     ${LIB_PATH}/libgpg-error.so.0 \
-    ${LIB_PATH}
+    ${LIB_PATH}/
 
 ENTRYPOINT [ "/usr/bin/python3.11", "lologen.py" ]

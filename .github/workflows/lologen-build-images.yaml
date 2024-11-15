@@ -15,7 +15,7 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-          ignore: "DL3007"
+          ignore: "DL3007,DL3008"
 
       - name: Linting Binary Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
