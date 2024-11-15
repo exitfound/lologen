@@ -7,7 +7,7 @@ services:
     #   context: .
     #   dockerfile: Dockerfile
     restart: on-failure
-    command: [ "-f", "logfmt", "-l", "console", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
+    command: [ "-f", "logfmt", "-l", "info", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
 
     # Driver variant
     logging:
