@@ -2,8 +2,10 @@ import argparse
 import logging
 import logging_json
 import random
+import string
 import sys
 import time
+from systemd import journal
 from os.path import expanduser
 from logfmter import Logfmter
 
@@ -41,8 +43,19 @@ class MySuperColorFormatter(logging.Formatter):
         self.original_formatter = original_formatter
 
     def format(self, record):
+        record.levelname = record.levelname.lower()
         if (record.levelno in self.COLOR_CODES):
             record.msg = self.COLOR_CODES[record.levelno] + record.msg + self.RESET_CODE
+        return self.original_formatter.format(record)
+
+class NonColorFormatter(logging.Formatter):
+    original_formatter = None
+
+    def __init__(self, original_formatter):
+        self.original_formatter = original_formatter
+
+    def format(self, record):
+        record.levelname = record.levelname.lower()
         return self.original_formatter.format(record)
 
 def use_color():
@@ -56,21 +69,28 @@ def use_color():
         print("Something went wrong with color argument:\n")
         raise ValueError(f"{ERROR_VALUE} '%s'" % arguments.color)
 
+def generate_random_string():
+    length = random.randint(10, 20)
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
 def log_format(pls_use_color):
-    if arguments.format == "plainlog":
+    if arguments.format == "unstructured":
         log_value_format = '%(asctime)s %(name)s %(process)d %(threadName)s %(levelname)s %(message)s'
         console_formatter = logging.Formatter(fmt=log_value_format, datefmt=log_date_format)
 
     elif arguments.format == "logfmt":
         console_formatter = Logfmter(
-            keys=["date", "name", "process", "thread", "level", "message"],
+            keys=["date", "name", "threadName", "thread", "processName", "process", "level", "levelnum", "msg"],
             mapping={
                 "date": "asctime",
                 "name": "name",
-                "thread": "threadName",
+                "thread": "thread",
+                "threadName": "threadName",
                 "process": "process",
+                "processName": "processName",
                 "level": "levelname",
-                "message": "message"
+                "levelnum": "levelno",
+                "msg": "message"
             })
 
     elif arguments.format == "json":
@@ -79,8 +99,11 @@ def log_format(pls_use_color):
             fields={
                 "date": "asctime",
                 "name": "name",
-                "thread": "threadName",
+                "thread": "thread",
+                "threadName": "threadName",
                 "process": "process",
+                "processName": "processName",
+                "levelnum": "levelno",
                 "level": "levelname",
                 "message": "message"
             })
@@ -92,7 +115,7 @@ def log_format(pls_use_color):
     if pls_use_color:
         return MySuperColorFormatter(console_formatter)
     else:
-        return console_formatter
+        return NonColorFormatter(console_formatter)
 
 def create_console_handler(console_log_output='stdout', console_log_level='warning'):
     console_log_output = console_log_output.lower()
@@ -113,12 +136,27 @@ def create_console_handler(console_log_output='stdout', console_log_level='warni
         console_handler.setLevel(console_log_level.upper())
 
     except Exception as error:
-        print("Something went wrong with log level:\n")
+        print("Something went wrong with log level in console mode:\n")
         raise ValueError('{m}'.format(m = str(error)))
 
     result_log_format = log_format(use_color())
     console_handler.setFormatter(result_log_format)
     return console_handler
+
+def create_journald_handler(console_log_level='warning'):
+
+    journald_handler = journal.JournalHandler()
+
+    try:
+        journald_handler.setLevel(console_log_level.upper())
+
+    except Exception as error:
+        print("Something went wrong with log level in jounrald mode:\n")
+        raise ValueError('{m}'.format(m = str(error)))
+
+    result_log_format = log_format(use_color())
+    journald_handler.setFormatter(result_log_format)
+    return journald_handler
 
 def create_file_handler(console_log_level='warning'):
     file_handler = logging.FileHandler(arguments.path_file)
@@ -127,7 +165,7 @@ def create_file_handler(console_log_level='warning'):
         file_handler.setLevel(console_log_level.upper())
 
     except Exception as error:
-        print("Something went wrong with log level:\n")
+        print("Something went wrong with log level in file mode:\n")
         raise ValueError('{m}'.format(m = str(error)))
 
     result_log_format = log_format(use_color())
@@ -145,6 +183,11 @@ def exec_logger():
         exec_logger = create_logger(arguments.name, create_console_handler(
             console_log_level=arguments.level, 
             console_log_output=arguments.stream
+        ))
+
+    elif arguments.type == "journald":
+        exec_logger = create_logger(arguments.name, create_journald_handler(
+            console_log_level=arguments.level
         ))
 
     elif arguments.type == "file":
@@ -167,19 +210,19 @@ def main():
             getattr(log, log_level.lower())
 
             if 'DEBUG' in log_level:
-                log.debug('Сообщение для отладки, цвет — синий!')
+                log.debug(f'Сообщение для отладки, цвет — синий: {generate_random_string()}')
 
             elif 'INFO' in log_level:
-                log.info('Информационное сообщение, цвет — зеленый!')
+                log.info(f'Информационное сообщение, цвет — зеленый: {generate_random_string()}')
 
             elif 'WARNING' in log_level:
-                log.warning('Предупреждающее сообщение, цвет — желтый!')
+                log.warning(f'Предупреждающее сообщение, цвет — желтый: {generate_random_string()}')
 
             elif 'ERROR' in log_level:
-                log.error('Сообщение об ошибке, цвет — красный!')
+                log.error(f'Сообщение об ошибке, цвет — красный: {generate_random_string()}')
 
             elif 'CRITICAL' in log_level:
-                log.critical('Сообщение о критической ошибке, цвет — фиолетовый!')
+                log.critical(f'Сообщение о критической ошибке, цвет — фиолетовый: {generate_random_string()}')
 
     except Exception as error:
         print(error)

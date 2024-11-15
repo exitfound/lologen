@@ -1,3 +1,4 @@
 logfmter == 0.0.8
 logging-json == 0.5.0
 pyinstaller == 6.5.0
+systemd == 0.17.1
