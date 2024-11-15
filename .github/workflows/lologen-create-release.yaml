@@ -17,7 +17,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install --user --no-cache-dir -r requirements.txt
+      - run: |
+              apt-get update \
+              && apt-get install -y --no-install-recommends \
+                gcc \
+                libc6-dev \
+                libsystemd-dev \
+              && apt-get clean \
+              && apt-get autoremove -y \
+              && pip install --user --no-cache-dir -r requirements.txt
 
       - name: Build our Application
         run: |
