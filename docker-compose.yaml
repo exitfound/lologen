@@ -3,8 +3,11 @@ services:
   lologen:
     container_name: lologen
     image: mdd13/lologen:main
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     restart: on-failure
-    command: [ "-f", "json", "-l", "info", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
+    command: [ "-f", "logfmt", "-l", "console", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
 
     # Driver variant
     logging:
@@ -13,8 +16,11 @@ services:
         loki-url: "http://172.17.0.1:3100/loki/api/v1/push"
         loki-retries: "3"
         loki-pipeline-stages: |
+          - json:
+              expressions:
+                level:
           - regex:
-              expression: '(level|levelname|lvl|severity)=(?P<level>\w+)'
+              expression: '(level|levelname|level_extracted|lvl|severity)=(?P<level>\w+)'
           - labels:
               level:
 

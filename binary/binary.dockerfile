@@ -2,6 +2,15 @@ FROM python:3.11-slim-bookworm AS BASE
 
 WORKDIR /app
 
+RUN apt-get update \
+    && apt-get -y install --no-install-recommends \
+    binutils \
+    gcc \
+    libc6-dev \
+    libsystemd-dev \
+    && apt-get clean \
+    && apt-get autoremove -y
+
 COPY requirements.txt .
 
 RUN --mount=type=cache,target=/root/.cache \
@@ -9,12 +18,7 @@ RUN --mount=type=cache,target=/root/.cache \
 
 COPY lologen.py .
 
-RUN apt-get update \
-    && apt-get -y install --no-install-recommends binutils \
-    && apt-get clean \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt /var/lib/dpkg /tmp/* /var/tmp/* \
-    && python3 -m PyInstaller --onefile --noconfirm --clean --name lologen lologen.py
+RUN python3 -m PyInstaller --onefile --noconfirm --clean --name lologen lologen.py
 
 
 FROM gcr.io/distroless/base-debian12:latest AS FINAL
@@ -27,11 +31,11 @@ LABEL maintainer="Ivan Medaev" \
 ENV CHIPSET_ARCH=x86_64-linux-gnu
 ENV USER=nonroot
 
+USER ${USER}
+
 WORKDIR /app
 
 COPY --from=BASE /lib/${CHIPSET_ARCH}/libz.so.1 /lib/${CHIPSET_ARCH}/
 COPY --from=BASE --chown=${USER}:${GROUP} /app/dist/lologen .
-
-USER ${USER}
 
 ENTRYPOINT [ "./lologen" ]

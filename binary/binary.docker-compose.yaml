@@ -3,6 +3,9 @@ services:
   lologen-binary:
     container_name: lologen-binary
     image: mdd13/lologen:binary
+    # build:
+    #   context: ../
+    #   dockerfile: ./binary/binary.dockerfile
     restart: on-failure
     command: [ "-f", "logfmt", "-l", "info", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
 
@@ -13,6 +16,9 @@ services:
         loki-url: "http://172.17.0.1:3100/loki/api/v1/push"
         loki-retries: "3"
         loki-pipeline-stages: |
+          - json:
+              expressions:
+                level:
           - regex:
               expression: '(level|levelname|lvl|severity)=(?P<level>\w+)'
           - labels:
@@ -20,4 +26,4 @@ services:
 
     # Scrape variant:
     # labels:
-    #   name: "running"
+    #   name: "lologen"
