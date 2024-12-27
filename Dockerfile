@@ -35,6 +35,7 @@ WORKDIR /app
 
 COPY --from=BASE --chown=${USER}:${USER} /root/.local /home/${USER}/.local
 COPY --chown=${USER}:${USER} lologen.py .
+COPY --chown=${USER}:${USER} ./src ./src
 COPY --from=BASE ${LIB_PATH}/libcap.so.2 \
     ${LIB_PATH}/libsystemd.so.0 \
     ${LIB_PATH}/libgcrypt.so.20 \

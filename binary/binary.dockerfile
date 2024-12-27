@@ -16,6 +16,7 @@ COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache \
     pip install --user --no-cache-dir -r requirements.txt
 
+COPY ./src ./src
 COPY lologen.py .
 
 RUN python3 -m PyInstaller --onefile --noconfirm --clean --name lologen lologen.py

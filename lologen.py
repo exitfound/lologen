@@ -1,13 +1,17 @@
 import argparse
 import logging
+import logging.handlers
 import logging_json
 import random
 import string
 import sys
+import threading
 import time
-from systemd import journal
-from os.path import expanduser
 from logfmter import Logfmter
+from os.path import expanduser
+from systemd import journal
+from src import constants
+from src.webserver import start_webserver
 
 ERROR_VALUE = "Invalid Value:"
 log_file_path = (expanduser(".") + "/spam_application.log")
@@ -20,7 +24,11 @@ parser.add_argument('-n', '--name', type=str, default="spam_application", help="
 parser.add_argument('-p', '--path_file', type=str, default=log_file_path, help="Path to file when writing log messages to file")
 parser.add_argument('-s', '--stream', type=str, default="stdout", help="The stream type that will be used when sending log messages")
 parser.add_argument('-t', '--type', type=str, default="console", help="The handler type that will be used when sending log messages")
+parser.add_argument('-H', '--web_host', type=str, default=constants.HOST, help="Set the host address for third party Web-server")
+parser.add_argument('-P', '--web_port', type=int, default=constants.PORT, help="Set the port for third party Web-server")
+parser.add_argument('-M', '--web_method', type=str, default="GET", help="Set the HTTP-method for third party Web-server")
 parser.add_argument('-T', '--timeout', type=float, default=2.0, help="The interval in seconds at which the log message will be sent")
+parser.add_argument('-W', '--webserver', action='store_true', help="Starting the built-in Web-server")
 
 arguments = parser.parse_args()
 timeout = arguments.timeout
@@ -144,7 +152,6 @@ def create_console_handler(console_log_output='stdout', console_log_level='warni
     return console_handler
 
 def create_journald_handler(console_log_level='warning'):
-
     journald_handler = journal.JournalHandler()
 
     try:
@@ -157,6 +164,19 @@ def create_journald_handler(console_log_level='warning'):
     result_log_format = log_format(use_color())
     journald_handler.setFormatter(result_log_format)
     return journald_handler
+
+def create_http_handler(console_log_level='warning'):
+    address = f"{arguments.web_host}:{arguments.web_port}"
+    http_handler = logging.handlers.HTTPHandler(address, url=f"http://{address}", method=arguments.web_method, secure=False)
+
+    try:
+        http_handler.setLevel(console_log_level.upper())
+
+    except Exception as error:
+        print("Something went wrong with log level in file mode:\n")
+        raise ValueError('{m}'.format(m = str(error)))
+
+    return http_handler
 
 def create_file_handler(console_log_level='warning'):
     file_handler = logging.FileHandler(arguments.path_file)
@@ -190,6 +210,11 @@ def exec_logger():
             console_log_level=arguments.level
         ))
 
+    elif arguments.type == "http":
+        exec_logger = create_logger(arguments.name, create_http_handler(
+            console_log_level=arguments.level
+        ))
+
     elif arguments.type == "file":
         exec_logger = create_logger(arguments.name, create_file_handler(
             console_log_level=arguments.level
@@ -203,6 +228,14 @@ def exec_logger():
 
 def main():
     try:
+        constants.HOST = arguments.web_host
+        constants.PORT = arguments.web_port
+
+        if arguments.webserver:
+            webserver_thread = threading.Thread(target=start_webserver)
+            webserver_thread.daemon = True
+            webserver_thread.start()
+
         log = exec_logger()
         while 1:
             time.sleep(timeout)
