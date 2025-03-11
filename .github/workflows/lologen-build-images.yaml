@@ -27,14 +27,17 @@ jobs:
           dockerfile: ./binary/binary.dockerfile
           ignore: "DL3007,DL3008"
 
-  build-lologen-main-image:
+  build-images:
     needs: hadolint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 2
       matrix:
-        IMAGE_TAG: [main]
+        IMAGE_TAG: [main, binary]
+    outputs:
+      image_digest_main: ${{ steps.build-and-push-main.outputs.digest }}
+      image_digest_binary: ${{ steps.build-and-push-binary.outputs.digest }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -51,8 +54,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image (main)
         uses: docker/build-push-action@v5
+        if: matrix.IMAGE_TAG == 'main'
+        id: build-and-push-main
         env:
           IMAGE_TAG: ${{ matrix.IMAGE_TAG }}
         with:
@@ -63,32 +68,10 @@ jobs:
           cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
           cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
-  build-lologen-binary-image:
-    needs: hadolint
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        IMAGE_TAG: [binary]
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image (binary)
         uses: docker/build-push-action@v5
+        if: matrix.IMAGE_TAG == 'binary'
+        id: build-and-push-binary
         env:
           DOCKERFILE_PATH: "./binary/binary"
           IMAGE_TAG: ${{ matrix.IMAGE_TAG }}
@@ -99,3 +82,36 @@ jobs:
           file: ${{ env.DOCKERFILE_PATH }}.dockerfile
           cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
           cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
+
+  sign-images:
+    needs: build-images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        IMAGE_TAG: [main, binary]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Cosign
+        uses: sigstore/cosign-installer@v3.5.0
+
+      - name: Sign Container Image with a Cosign Key (Main Tag)
+        uses: dodopizza/cosign-sign-push-action@0.0.7
+        if: matrix.IMAGE_TAG == 'main'
+        with:
+          image-tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ matrix.IMAGE_TAG }}
+          image-digest: ${{ needs.build-images.outputs.image_digest_main }}
+          cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+
+      - name: Sign Container Image with a Cosign Key (Main Tag)
+        uses: dodopizza/cosign-sign-push-action@0.0.7
+        if: matrix.IMAGE_TAG == 'main'
+        with:
+          image-tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ matrix.IMAGE_TAG }}
+          image-digest: ${{ needs.build-images.outputs.image_digest_binary }}
+          cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
