@@ -4,6 +4,10 @@ name: Lologen Build Images
 on:
   workflow_dispatch:
 
+env:
+  DOCKERHUB_USER: "mdd13"
+  DOCKERHUB_REPOSITORY: "lologen"
+
 jobs:
   hadolint:
     runs-on: ubuntu-latest
@@ -50,16 +54,14 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         env:
-          DOCKER_HUB_USER: "mdd13"
-          DOCKER_HUB_REPOSITORY: "lologen"
           IMAGE_TAG: ${{ matrix.IMAGE_TAG }}
         with:
           push: true
           context: .
-          tags: ${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
           file: Dockerfile
-          cache-from: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          cache-to: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
+          cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
   build-lologen-binary-image:
     needs: hadolint
@@ -88,13 +90,12 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         env:
-          DOCKER_HUB_USER: "mdd13"
-          DOCKER_HUB_REPOSITORY: "lologen"
+          DOCKERFILE_PATH: "./binary/binary"
           IMAGE_TAG: ${{ matrix.IMAGE_TAG }}
         with:
           push: true
           context: .
-          tags: ${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: ./${{ env.IMAGE_TAG }}/${{ env.IMAGE_TAG }}.dockerfile
-          cache-from: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          cache-to: type=gha,ref=${{ env.DOCKER_HUB_USER }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
+          tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          file: ${{ env.DOCKERFILE_PATH }}.dockerfile
+          cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
