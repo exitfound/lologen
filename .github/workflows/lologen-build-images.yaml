@@ -113,7 +113,7 @@ jobs:
           cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
-      - name: Sign Container Image with a Cosign Key (Main Tag)
+      - name: Sign Container Image with a Cosign Key (Binary Tag)
         uses: dodopizza/cosign-sign-push-action@0.0.7
         if: matrix.IMAGE_TAG == 'binary'
         with:
