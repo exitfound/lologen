@@ -3,9 +3,9 @@ services:
   lologen-binary:
     container_name: lologen-binary
     image: mdd13/lologen:binary
-    # build:
-    #   context: ../
-    #   dockerfile: ./binary/binary.dockerfile
+    build:
+      context: ../
+      dockerfile: ./binary/binary.dockerfile
     restart: on-failure
     command: [ "-f", "logfmt", "-l", "info", "-s", "stdout", "-t", "console", "-T", "2", "-c", "always"]
 
@@ -20,7 +20,7 @@ services:
               expressions:
                 level:
           - regex:
-              expression: '(level|levelname|lvl|severity)=(?P<level>\w+)'
+              expression: '(level|levelname|level_extracted|lvl|severity)=(?P<level>\w+)'
           - labels:
               level:
 
