@@ -95,6 +95,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Set up Cosign
         uses: sigstore/cosign-installer@v3.5.0
 
@@ -109,7 +115,7 @@ jobs:
 
       - name: Sign Container Image with a Cosign Key (Main Tag)
         uses: dodopizza/cosign-sign-push-action@0.0.7
-        if: matrix.IMAGE_TAG == 'main'
+        if: matrix.IMAGE_TAG == 'binary'
         with:
           image-tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ matrix.IMAGE_TAG }}
           image-digest: ${{ needs.build-images.outputs.image_digest_binary }}
