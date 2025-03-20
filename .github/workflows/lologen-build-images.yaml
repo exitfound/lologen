@@ -83,6 +83,10 @@ jobs:
           cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
           cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
+      - name: Show Image Digest
+        run: |
+          echo "Image Digest: ${{ steps.build-and-push-main.outputs.digest }}"
+
   sign-images:
     needs: build-images
     runs-on: ubuntu-latest
@@ -122,7 +126,6 @@ jobs:
           cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
-      - name: Debug Image Digests
+      - name: Show Digest Before Signing
         run: |
-          echo "Main Image Digest: ${{ needs.build-images.outputs.image_digest_main }}"
-          echo "Binary Image Digest: ${{ needs.build-images.outputs.image_digest_binary }}"
+          echo "Signing Digest: ${{ needs.build-images.outputs.image_digest_main }}
