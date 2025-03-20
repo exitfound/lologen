@@ -36,8 +36,8 @@ jobs:
       matrix:
         IMAGE_TAG: [main, binary]
     outputs:
-      image_digest_main: ${{ steps.build-and-push-main.outputs.digest }}
-      image_digest_binary: ${{ steps.build-and-push-binary.outputs.digest }}
+      image_digest_main: ${{ steps.build-and-push-main.outputs.image_digest  }}
+      image_digest_binary: ${{ steps.build-and-push-binary.outputs.image_digest  }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
