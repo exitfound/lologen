@@ -66,8 +66,8 @@ jobs:
           provenance: false
           file: Dockerfile
           tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          # cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          # cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
+          cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
       - name: Build and Push Docker Image (binary)
         uses: docker/build-push-action@v5
@@ -82,8 +82,8 @@ jobs:
           context: .
           file: ${{ env.DOCKERFILE_PATH }}.dockerfile
           tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          # cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          # cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
+          cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
   sign-images:
     needs: build-images
