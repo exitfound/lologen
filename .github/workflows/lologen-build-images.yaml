@@ -61,12 +61,14 @@ jobs:
         env:
           IMAGE_TAG: ${{ matrix.IMAGE_TAG }}
         with:
-          push: true
           context: .
-          tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          push: true
+          provenance: false
           file: Dockerfile
-          cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          # cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          # cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
       - name: Build and Push Docker Image (binary)
         uses: docker/build-push-action@v5
@@ -77,15 +79,13 @@ jobs:
           IMAGE_TAG: ${{ matrix.IMAGE_TAG }}
         with:
           push: true
+          provenance: false
           context: .
-          tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
           file: ${{ env.DOCKERFILE_PATH }}.dockerfile
-          cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
-
-      - name: Show Image Digest
-        run: |
-          echo "Image Digest: ${{ steps.build-and-push-main.outputs.digest }}"
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
+          tags: ${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          # cache-from: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          # cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
   sign-images:
     needs: build-images
@@ -125,7 +125,3 @@ jobs:
           image-digest: ${{ needs.build-images.outputs.image_digest_binary }}
           cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
-
-      - name: Show Digest Before Signing
-        run: |
-          echo "Signing Digest: ${{ needs.build-images.outputs.image_digest_main }}
