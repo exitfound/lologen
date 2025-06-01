@@ -9,7 +9,7 @@ import threading
 import time
 from logfmter import Logfmter
 from os.path import expanduser
-from systemd import journal
+from cysystemd import journal
 from src import constants
 from src.webserver import start_webserver
 
@@ -152,7 +152,7 @@ def create_console_handler(console_log_output='stdout', console_log_level='warni
     return console_handler
 
 def create_journald_handler(console_log_level='warning'):
-    journald_handler = journal.JournalHandler()
+    journald_handler = journal.JournaldLogHandler()
 
     try:
         journald_handler.setLevel(console_log_level.upper())
