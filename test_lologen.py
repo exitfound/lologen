@@ -26,6 +26,7 @@ class TestFormatter:
     def get_test_assert_val(self):
         return 123
 
+
 @pytest.fixture
 def arguments_fixture_journald_unstructured():
     a = argparse.Namespace(
@@ -208,8 +209,6 @@ def test_use_color():
 
 
 def test_non_color_formatter():
-
-
     cls = lologen.NonColorFormatter(original_formatter=1)
     assert cls.original_formatter == 1
     fmt = TestFormatter()
@@ -224,8 +223,8 @@ def test_non_color_formatter():
         exc_info=True
     )) == fmt.get_test_assert_val()
 
-def test_my_super_color_formatter():
 
+def test_my_super_color_formatter():
     cls = lologen.MySuperColorFormatter(original_formatter=1)
     assert cls.original_formatter == 1
     fmt = TestColorFormatter()
@@ -245,4 +244,3 @@ def test_my_super_color_formatter():
     record.levelno = logging.DEBUG
     changed_record = cls.format(record)
     assert changed_record.msg == f"\x1b[0;36m{msg}\x1b[0m"
-
