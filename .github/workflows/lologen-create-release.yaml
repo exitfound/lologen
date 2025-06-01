@@ -1,17 +1,23 @@
+---
 name: Lologen Create Release
 
-on: 
+on:
   push:
     tags:
       - "v*.*.*"
 
 jobs:
+  run-tests:
+    name: Run Python Tests
+    uses: ./.github/workflows/lologen-run-tests.yaml
+
   build:
     name: Create Release
+    needs: run-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Dependencies
         uses: actions/setup-python@v5

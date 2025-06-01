@@ -1,0 +1,30 @@
+---
+name: Lologen Run Tests
+
+on:
+  workflow_call:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: |
+              sudo apt-get update \
+              && sudo apt-get install -y --no-install-recommends \
+                gcc \
+                libc6-dev \
+                libsystemd-dev \
+              && sudo apt-get clean \
+              && sudo apt-get autoremove -y \
+              && pip install --user --no-cache-dir -r requirements.txt
+
+      - name: Run Python Tests
+        run: |
+          pytest tests/

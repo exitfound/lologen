@@ -9,11 +9,17 @@ env:
   DOCKERHUB_REPOSITORY: "lologen"
 
 jobs:
+  run-tests:
+    name: Run Python Tests
+    uses: ./.github/workflows/lologen-run-tests.yaml
+
   hadolint:
+    name: Linting Dockerfiles
+    needs: run-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Linting Main Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
@@ -28,6 +34,7 @@ jobs:
           ignore: "DL3007,DL3008"
 
   build-images:
+    name: Build Docker Image
     needs: hadolint
     runs-on: ubuntu-latest
     strategy:
@@ -86,6 +93,7 @@ jobs:
           cache-to: type=gha,ref=${{ env.DOCKERHUB_USER }}/${{ env.DOCKERHUB_REPOSITORY }}:${{ env.IMAGE_TAG }},mode=max
 
   sign-images:
+    name: Sign Docker image
     needs: build-images
     runs-on: ubuntu-latest
     strategy:

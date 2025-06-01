@@ -30,8 +30,6 @@ parser.add_argument('-M', '--web_method', type=str, default="GET", help="Set the
 parser.add_argument('-T', '--timeout', type=float, default=2.0, help="The interval in seconds at which the log message will be sent")
 parser.add_argument('-W', '--webserver', action='store_true', help="Starting the built-in Web-server")
 
-arguments = None
-timeout = 2.0
 list_levels = [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.FATAL]
 log_date_format = '%Y-%m-%d, %H:%M:%S'
 
