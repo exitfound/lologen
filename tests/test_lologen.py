@@ -1,17 +1,17 @@
 import argparse
-import importlib
 import logging
+import os
 import sys
-from io import StringIO
-from logging import Logger, StreamHandler
-from unittest.mock import patch
-from cysystemd import journal
-
 import pytest
-from lologen import generate_random_string, exec_logger
-import lologen
-from logfmter import Logfmter
 import logging_json
+
+from logging import Logger, StreamHandler
+from cysystemd import journal
+from logfmter import Logfmter
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import lologen
 
 
 class TestColorFormatter:
@@ -47,7 +47,6 @@ def arguments_formatted_color_builder(name='', color='', format=''):
 @pytest.fixture
 def arguments_fixture_console_unstructured():
     a = argparse.Namespace(
-        #name='test_name',
         type='console',
         level='debug',
         stream='stdout',
@@ -57,7 +56,7 @@ def arguments_fixture_console_unstructured():
 
 
 def test_generate_random_string():
-    str_len = len(generate_random_string())
+    str_len = len(lologen.generate_random_string())
     assert str_len >= 10
     assert str_len <= 20
 
@@ -65,7 +64,7 @@ def test_generate_random_string():
 def test_exec_logger_console_unstructed(arguments_fixture_console_unstructured):
     lologen.arguments = arguments_fixture_console_unstructured
     lologen.arguments.name = 'arguments_fixture_console_unstructured'
-    result = exec_logger()
+    result = lologen.exec_logger()
     assert isinstance(result, Logger) is True
     assert len(result.handlers) == 1
     assert isinstance(result.handlers[0], StreamHandler)
@@ -74,7 +73,7 @@ def test_exec_logger_console_unstructed(arguments_fixture_console_unstructured):
 def test_exec_logger_journald_unstructed(arguments_fixture_journald_unstructured):
     lologen.arguments = arguments_fixture_journald_unstructured
     lologen.arguments.name = 'arguments_fixture_journald_unstructured'
-    result = exec_logger()
+    result = lologen.exec_logger()
     assert isinstance(result, Logger) is True
     assert len(result.handlers) == 1
     assert isinstance(result.handlers[0], journal.JournaldLogHandler)

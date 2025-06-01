@@ -45,8 +45,7 @@ python3 lologen.py -h
 После выполнения установки из исходного кода выполнить команды:
 
 ```
-pip3 install --user -r test-requirements.txt
-pytest
+pytest tests/
 ```
 
 Для получения информации по покрытию кода тестами необходимо выполнить 
