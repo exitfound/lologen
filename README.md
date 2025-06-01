@@ -49,7 +49,11 @@ pip3 install --user -r test-requirements.txt
 pytest
 ```
 
-Для получения информации по покрытию кода тестами необходимо выполнить ```pytest  --cov=./ --cov-report=html```
+Для получения информации по покрытию кода тестами необходимо выполнить 
+
+```
+pytest  --cov=./ --cov-report=html
+```
 
 ### **С помощью Docker:**
 
