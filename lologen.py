@@ -9,7 +9,7 @@ import threading
 import time
 from logfmter import Logfmter
 from os.path import expanduser
-from systemd import journal
+from cysystemd import journal
 from src import constants
 from src.webserver import start_webserver
 
@@ -30,8 +30,8 @@ parser.add_argument('-M', '--web_method', type=str, default="GET", help="Set the
 parser.add_argument('-T', '--timeout', type=float, default=2.0, help="The interval in seconds at which the log message will be sent")
 parser.add_argument('-W', '--webserver', action='store_true', help="Starting the built-in Web-server")
 
-arguments = parser.parse_args()
-timeout = arguments.timeout
+arguments = None
+timeout = 2.0
 list_levels = [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.FATAL]
 log_date_format = '%Y-%m-%d, %H:%M:%S'
 
@@ -152,7 +152,7 @@ def create_console_handler(console_log_output='stdout', console_log_level='warni
     return console_handler
 
 def create_journald_handler(console_log_level='warning'):
-    journald_handler = journal.JournalHandler()
+    journald_handler = journal.JournaldLogHandler()
 
     try:
         journald_handler.setLevel(console_log_level.upper())
@@ -228,6 +228,9 @@ def exec_logger():
 
 def main():
     try:
+        global arguments
+        arguments = parser.parse_args()
+        timeout = arguments.timeout
         constants.HOST = arguments.web_host
         constants.PORT = arguments.web_port
 
